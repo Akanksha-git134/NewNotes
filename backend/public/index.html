@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NewNotes</title>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#3525cd"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<link rel="icon" href="/icon-192.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --primary:#3525cd; --primary-container:#4f46e5; --primary-fixed:#e2dfff;
+    --on-primary:#ffffff; --on-primary-container:#dad7ff;
+    --secondary:#505f76; --secondary-container:#d0e1fb;
+    --tertiary:#7e3000; --tertiary-container:#a44100; --tertiary-fixed:#ffdbcc;
+    --error:#ba1a1a; --error-container:#ffdad6; --on-error-container:#93000a;
+    --background:#f9f9ff; --surface:#f9f9ff; --surface-lowest:#ffffff;
+    --surface-low:#f1f3ff; --surface-high:#e1e8fd; --surface-highest:#dce2f7;
+    --on-surface:#141b2b; --on-surface-variant:#464555;
+    --outline:#777587; --outline-variant:#c7c4d8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--background);color:var(--on-surface);}
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:220px;flex-shrink:0;background:var(--surface-lowest);border-right:1px solid var(--outline-variant);padding:20px 0;}
+  .brand{display:flex;align-items:center;gap:10px;padding:0 20px 20px;border-bottom:1px solid var(--outline-variant);margin-bottom:12px;}
+  .brand .mark{width:34px;height:34px;border-radius:9px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;}
+  .brand h1{font-size:17px;margin:0;color:var(--primary);}
+  .brand p{margin:2px 0 0;font-size:11px;color:var(--secondary);}
+  nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:var(--secondary);text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;border-left:2px solid transparent;}
+  nav a:hover{background:var(--surface-low);}
+  nav a.active{background:rgba(79,70,229,0.08);border-left-color:var(--primary);color:var(--primary);font-weight:700;}
+  .material-symbols-outlined{font-size:19px;}
+  main{flex:1;padding:28px 32px;max-width:1100px;}
+  h2.page-title{font-size:26px;margin:0 0 4px;letter-spacing:-0.01em;}
+  p.page-sub{color:var(--on-surface-variant);margin:0 0 22px;font-size:14px;}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px;}
+  .card{background:var(--surface-lowest);border:1px solid var(--outline-variant);border-radius:10px;padding:14px;}
+  .card .lbl{font-size:11px;color:var(--on-surface-variant);display:flex;justify-content:space-between;align-items:center;}
+  .card .num{font-size:24px;font-weight:600;margin-top:6px;}
+  section.block{background:var(--surface-lowest);border:1px solid var(--outline-variant);border-radius:12px;padding:20px;margin-bottom:20px;}
+  section.block h3{margin:0 0 14px;font-size:15px;}
+  .empty{color:var(--on-surface-variant);font-size:13px;padding:18px;text-align:center;border:1px dashed var(--outline-variant);border-radius:10px;}
+  .event-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--outline-variant);border-radius:9px;margin-bottom:8px;}
+  .event-row.conflict{background:rgba(186,26,26,0.05);border-color:rgba(186,26,26,0.3);}
+  .event-row.changed{background:rgba(53,37,205,0.04);border-color:rgba(53,37,205,0.25);}
+  .event-row .t{font-weight:600;font-size:13.5px;}
+  .event-row .meta{font-size:12px;color:var(--on-surface-variant);margin-top:2px;}
+  .tag{font-size:10px;font-weight:700;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
+  .tag.exam{background:var(--tertiary-fixed);color:var(--tertiary-container);}
+  .tag.assignment{background:var(--secondary-container);color:var(--secondary);}
+  .tag.internship{background:var(--primary-fixed);color:var(--primary);}
+  .tag.event{background:var(--surface-highest);color:var(--on-surface-variant);}
+  .tag.other{background:var(--surface-highest);color:var(--on-surface-variant);}
+  .tag.conflict{background:var(--error);color:#fff;}
+  .tag.new{background:#dcfce7;color:#15803d;}
+  .tag.changed{background:var(--primary-fixed);color:var(--primary);}
+  textarea{width:100%;min-height:150px;border:1px solid var(--outline-variant);border-radius:8px;padding:10px;font-family:inherit;font-size:13px;resize:vertical;}
+  input[type=text]{width:100%;border:1px solid var(--outline-variant);border-radius:8px;padding:9px 10px;font-family:inherit;font-size:13px;margin-bottom:10px;}
+  button{cursor:pointer;font-family:inherit;font-weight:600;border-radius:8px;border:1px solid var(--outline-variant);background:#fff;padding:9px 14px;font-size:12.5px;color:var(--on-surface);}
+  button.primary{background:var(--primary);color:#fff;border-color:var(--primary);}
+  button.ghost{background:transparent;border:1px dashed var(--outline-variant);color:var(--secondary);}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .diff{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px;}
+  .diff .old{color:var(--on-surface-variant);text-decoration:line-through;}
+  .diff .new{color:var(--primary);font-weight:600;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .status{font-size:12px;color:var(--on-surface-variant);margin-bottom:10px;min-height:16px;}
+  .status.err{color:var(--error);}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--on-surface);color:#fff;padding:12px 18px;border-radius:9px;font-size:13px;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,0.2);opacity:0;transform:translateY(10px);transition:all .25s ease;pointer-events:none;z-index:999;display:flex;align-items:center;gap:8px;max-width:340px;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast.err{background:var(--error);}
+  .toast.ok{background:#15803d;}
+  .instructions{margin:16px 20px 0;padding:14px;background:var(--surface-low);border:1px solid var(--outline-variant);border-radius:10px;}
+  .instructions h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--secondary);}
+  .instructions ol{margin:0;padding-left:16px;font-size:11.5px;color:var(--on-surface-variant);line-height:1.7;}
+  .dismiss-btn{background:transparent;border:1px solid var(--outline-variant);color:var(--secondary);font-size:10px;padding:3px 8px;border-radius:6px;margin-top:6px;}
+  .dismiss-btn:hover{background:var(--surface-low);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-head{font-size:11px;font-weight:700;color:var(--secondary);text-align:center;padding-bottom:6px;}
+  .cal-cell{min-height:76px;border:1px solid var(--outline-variant);border-radius:8px;padding:6px;font-size:11px;background:var(--surface-lowest);cursor:pointer;}
+  .cal-cell.empty{background:transparent;border-color:transparent;cursor:default;}
+  .cal-cell.today{border-color:var(--primary);border-width:2px;}
+  .cal-cell.has-events{background:var(--primary-fixed);}
+  .cal-cell .daynum{font-weight:700;margin-bottom:3px;}
+  .cal-cell .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--primary);margin-right:3px;}
+  .cal-cell.has-conflict{background:var(--error-container);}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .cal-nav button{padding:6px 10px;}
+  #cal-day-detail{margin-top:16px;}
+
+  /* --- Mobile (this is exactly the path a WhatsApp share lands on) --- */
+  @media (max-width: 720px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--outline-variant);padding:12px 0;}
+    .brand{padding:0 16px 12px;margin-bottom:8px;}
+    nav{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 8px;gap:2px;}
+    nav a{flex:0 0 auto;padding:9px 12px;border-left:none;border-bottom:2px solid transparent;white-space:nowrap;font-size:12px;}
+    nav a.active{border-left-color:transparent;border-bottom-color:var(--primary);}
+    main{padding:16px;max-width:100%;}
+    h2.page-title{font-size:21px;}
+    p.page-sub{font-size:13px;margin-bottom:16px;}
+    .cards{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px;}
+    .card{padding:11px;}
+    .card .num{font-size:19px;}
+    section.block{padding:14px;margin-bottom:14px;}
+    .event-row{flex-direction:column;}
+    .event-row > div:last-child{flex-direction:row!important;align-items:center!important;width:100%;justify-content:space-between;margin-top:8px;}
+    .cal-grid{gap:3px;}
+    .cal-cell{min-height:50px;padding:4px;font-size:9.5px;}
+    .cal-cell .daynum{font-size:11px;}
+    .cal-cell .dot{width:5px;height:5px;margin-right:2px;}
+    textarea{min-height:110px;font-size:16px;} /* 16px avoids iOS Safari auto-zoom on focus */
+    input[type=text]{font-size:16px;}
+    .toast{left:16px;right:16px;bottom:16px;max-width:none;}
+    .instructions{margin:14px 16px 0;}
+  }
+  @media (max-width: 420px){
+    .cards{grid-template-columns:1fr 1fr;}
+    .cal-cell{min-height:40px;font-size:8.5px;}
+    .cal-cell div:not(.daynum){display:none;} /* too tight for event titles; the color + tap-through is enough */
+    .cal-cell.has-events .daynum::after{content:'●';color:var(--primary);font-size:8px;margin-left:3px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="mark">NN</div>
+      <div><h1>NewNotes</h1><p>Live backend</p></div>
+    </div>
+    <nav>
+      <a data-tab="overview" class="active"><span class="material-symbols-outlined">dashboard</span>Overview</a>
+      <a data-tab="timeline"><span class="material-symbols-outlined">event_note</span>Timeline</a>
+      <a data-tab="calendar"><span class="material-symbols-outlined">calendar_month</span>Calendar</a>
+      <a data-tab="conflicts"><span class="material-symbols-outlined">warning</span>Conflicts</a>
+      <a data-tab="changes"><span class="material-symbols-outlined">sync_alt</span>Changes</a>
+      <a data-tab="sources"><span class="material-symbols-outlined">source</span>Sources</a>
+      <a data-tab="howitworks"><span class="material-symbols-outlined">auto_awesome</span>How it works</a>
+    </nav>
+    <div class="instructions">
+      <h4>How to use</h4>
+      <ol>
+        <li>Go to <b>Sources</b>, paste a notice</li>
+        <li>Click <b>Extract events</b></li>
+        <li>Check <b>Conflicts</b>/<b>Changes</b></li>
+        <li>Click <b>Send reminder email</b> to get it in your inbox</li>
+      </ol>
+    </div>
+  </div>
+  <main>
+    <div id="panel-overview" class="panel active">
+      <h2 class="page-title">Overview</h2>
+      <p class="page-sub">Everything extracted from your sources, in one place.</p>
+      <div class="cards" id="cards"></div>
+      <section class="block"><h3>Needs attention</h3><div id="attention"></div></section>
+      <section class="block">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 style="margin:0;">Upcoming</h3>
+          <button class="primary" onclick="sendReminder()" id="reminderBtn">Send reminder email now</button>
+        </div>
+        <div class="status" id="reminderStatus"></div>
+        <div id="upcoming"></div>
+      </section>
+    </div>
+
+    <div id="panel-timeline" class="panel">
+      <h2 class="page-title">Timeline</h2>
+      <p class="page-sub">All extracted events, chronologically.</p>
+      <div id="timeline-list"></div>
+    </div>
+
+    <div id="panel-calendar" class="panel">
+      <h2 class="page-title">Calendar</h2>
+      <p class="page-sub">Click a day to see what's due.</p>
+      <section class="block">
+        <div class="cal-nav">
+          <button onclick="calShiftMonth(-1)">← Prev</button>
+          <h3 id="cal-month-label" style="margin:0;"></h3>
+          <button onclick="calShiftMonth(1)">Next →</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div id="cal-day-detail"></div>
+      </section>
+    </div>
+
+    <div id="panel-conflicts" class="panel">
+      <h2 class="page-title">Conflicts</h2>
+      <p class="page-sub">Events that overlap in time.</p>
+      <div id="conflicts-list"></div>
+    </div>
+
+    <div id="panel-changes" class="panel">
+      <h2 class="page-title">Changes</h2>
+      <p class="page-sub">What's different from what was previously extracted.</p>
+      <div id="changes-list"></div>
+    </div>
+
+    <div id="panel-sources" class="panel">
+      <h2 class="page-title">Sources</h2>
+      <p class="page-sub">Paste a notice below (WhatsApp/email text). NewNotes extracts events, diffs them against what it already knows, and checks for conflicts.</p>
+      <section class="block">
+        <div class="row">
+          <button class="ghost" onclick="loadSample(1)">Load sample: DAA Midterm notice</button>
+          <button class="ghost" onclick="loadSample(2)">Load sample: Internship OA (creates a conflict)</button>
+          <button class="ghost" onclick="loadSample(3)">Load sample: Deadline change notice</button>
+        </div>
+        <input type="text" id="sourceName" placeholder="Source name (e.g. DAA notice - WhatsApp)"/>
+        <textarea id="sourceText" placeholder="Paste the notice text here..."></textarea>
+        <div class="row" style="margin-top:10px;">
+          <button class="primary" onclick="handleExtract()" id="extractBtn">Extract events</button>
+        </div>
+        <div class="status" id="status"></div>
+      </section>
+      <section class="block">
+        <h3>Submitted sources</h3>
+        <div id="sources-list"><div class="empty">No sources submitted yet.</div></div>
+      </section>
+    </div>
+
+    <div id="panel-howitworks" class="panel">
+      <h2 class="page-title">How it works</h2>
+      <p class="page-sub">The pipeline behind NewNotes, end to end.</p>
+
+      <section class="block">
+        <h3>1. You paste a notice</h3>
+        <p class="meta" style="font-size:13px;line-height:1.6;">On the <b>Sources</b> tab you paste in raw text — a WhatsApp forward, an email, a notice board photo you typed up. Nothing is parsed on your end; the whole block of text is sent as-is to the backend.</p>
+      </section>
+
+      <section class="block">
+        <h3>2. An LLM extracts structured events</h3>
+        <p class="meta" style="font-size:13px;line-height:1.6;">The backend sends that text to Gemini with a strict extraction prompt: pull out every exam, deadline, or event, and return title, date, start/end time, venue, and a type (exam / internship / assignment / event / other). The model is told to reply with JSON only — the backend still defensively re-parses the response in case it wraps the JSON in prose.</p>
+      </section>
+
+      <section class="block">
+        <h3>3. Each event is diffed against what's already stored</h3>
+        <p class="meta" style="font-size:13px;line-height:1.6;">Events are matched by a normalized title. A brand-new title is inserted and tagged <b>New</b>. A title that already exists gets compared field by field — if the date, time, or venue changed, the old values are kept as "previous" and the event is tagged <b>Changed</b>, which is what powers the before/after arrows you see on the Changes tab. If nothing changed, it's just a silent refresh.</p>
+      </section>
+
+      <section class="block">
+        <h3>4. Conflicts are computed on every read</h3>
+        <p class="meta" style="font-size:13px;line-height:1.6;">Nothing is flagged as a conflict at write time. Every time the app loads state, it compares every pair of events on the same date and checks whether their time ranges overlap. Overlapping pairs get cross-linked, which is why dismissing a conflict has to clear it on <i>both</i> sides of the pair — otherwise one side is left silently stranded.</p>
+      </section>
+
+      <section class="block">
+        <h3>5. A daily digest — and on-demand — goes out by email</h3>
+        <p class="meta" style="font-size:13px;line-height:1.6;">If <code>RESEND_API_KEY</code> and <code>REMINDER_EMAIL</code> are set, the backend can email a digest of conflicts, events coming up in the next 48 hours, and recent changes. It runs automatically at 8am daily via a cron job, and you can also fire it immediately with the <b>Send reminder email now</b> button on the Overview tab — same digest, same code path, just triggered manually instead of on a schedule.</p>
+        <div id="email-result-shot" style="margin-top:10px;">
+          <img src="/email-digest-example.png" alt="Example NewNotes daily digest email showing a Conflicts section and a Recently changed section" style="max-width:100%;border:1px solid var(--outline-variant);border-radius:10px;"/>
+          <p class="meta" style="margin-top:8px;">A real digest — the conflict block above is exactly the DAA Midterm vs. TechCorp OA overlap the sample notices in Sources create, and the "Recently changed" block is the deadline-extension sample.</p>
+        </div>
+      </section>
+
+      <section class="block">
+        <h3>6. Calendar &amp; notes are just views over the same data</h3>
+        <p class="meta" style="font-size:13px;line-height:1.6;">The Calendar tab renders the same events on a month grid, and lets you jot a free-text note on any day — separate from extracted events, for anything you want to remember about that date.</p>
+      </section>
+
+      <section class="block">
+        <h3>7. Sharing straight from WhatsApp</h3>
+        <p class="meta" style="font-size:13px;line-height:1.6;">NewNotes can appear in your phone's native Share sheet — tap Share on a WhatsApp message, pick NewNotes, and it opens straight into Sources with the message text already pasted in, ready to Extract. This needs the site "installed" first: open it in Chrome on Android, use "Add to Home Screen," and it'll show up as a share target from then on. It's an Android/Chrome feature — Safari on iPhone doesn't support this yet, so on iPhone you'd still copy-paste.</p>
+      </section>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const samples = {
+  1: {name:"DAA Midterm notice", text:"Notice: The Design and Analysis of Algorithms (DAA) Midterm Exam will be held on August 12, 2026 from 11:00 AM to 1:00 PM in Room 304, CS Building. All enrolled students must bring their ID cards."},
+  2: {name:"Internship OA notice", text:"TechCorp Software Engineering Internship: The Online Assessment is scheduled for August 12, 2026, 10:00 AM to 12:00 PM. This is an online proctored assessment, link will be shared via email."},
+  3: {name:"DAA Assignment update", text:"Update: Due to technical issues, the DAA Assignment 3 submission deadline has been extended from August 10, 2026 to August 13, 2026, 11:59 PM. Submit via the course portal."}
+};
+
+let latestEvents = [];
+let latestNotes = {}; // { 'YYYY-MM-DD': 'note text' }
+let calCursor = new Date();
+
+function loadSample(n){
+  document.getElementById('sourceName').value = samples[n].name;
+  document.getElementById('sourceText').value = samples[n].text;
+}
+
+function showToast(msg, kind='ok'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + kind;
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=> t.className = 'toast', 3200);
+}
+
+document.querySelectorAll('nav a').forEach(a=>{
+  a.addEventListener('click', ()=>{
+    document.querySelectorAll('nav a').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    document.getElementById('panel-'+a.dataset.tab).classList.add('active');
+    if(a.dataset.tab === 'calendar') renderCalendar();
+  });
+});
+
+async function handleExtract(){
+  const name = document.getElementById('sourceName').value.trim() || 'Untitled source';
+  const text = document.getElementById('sourceText').value.trim();
+  const statusEl = document.getElementById('status');
+  const btn = document.getElementById('extractBtn');
+  if(!text){ showToast("Paste some notice text first.", "err"); return; }
+  btn.disabled = true;
+  statusEl.className = "status";
+  statusEl.textContent = "Extracting events…";
+  try{
+    const res = await fetch('/api/sources', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name, text })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Unknown error');
+    statusEl.textContent = `Done — extracted ${data.extractedCount} event(s) from "${name}".`;
+    showToast(`Extracted ${data.extractedCount} event(s) from "${name}"`, "ok");
+    await refresh();
+  }catch(err){
+    console.error(err);
+    statusEl.className = "status err";
+    statusEl.textContent = "Extraction failed: " + err.message;
+    showToast("Extraction failed: " + err.message, "err");
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function sendReminder(){
+  const btn = document.getElementById('reminderBtn');
+  const statusEl = document.getElementById('reminderStatus');
+  btn.disabled = true;
+  statusEl.className = "status";
+  statusEl.textContent = "Sending…";
+  try{
+    const res = await fetch('/api/send-reminder', { method:'POST' });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Unknown error');
+    statusEl.textContent = `Sent — ${data.conflictCount} conflict(s), ${data.upcomingCount} upcoming, ${data.changeCount} change(s).`;
+    showToast(`Reminder email sent — ${data.conflictCount} conflict(s), ${data.changeCount} change(s)`, "ok");
+  }catch(err){
+    statusEl.className = "status err";
+    statusEl.textContent = "Failed: " + err.message;
+    showToast("Failed to send reminder: " + err.message, "err");
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function dismissEvent(id, type){
+  try{
+    await fetch(`/api/events/${id}/dismiss`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ type })
+    });
+    showToast(`${type === 'conflict' ? 'Conflict' : 'Change'} dismissed`, "ok");
+    await refresh();
+  }catch(err){
+    showToast("Couldn't dismiss: " + err.message, "err");
+  }
+}
+
+async function refresh(){
+  const res = await fetch('/api/state');
+  const data = await res.json();
+  latestEvents = data.events || [];
+  latestNotes = {};
+  (data.notes || []).forEach(n => { latestNotes[n.date.slice(0,10)] = n.text; });
+  renderAll(latestEvents, data.sources || []);
+}
+
+async function saveNote(dateStr){
+  const textarea = document.getElementById('note-input');
+  const btn = document.getElementById('note-save-btn');
+  const text = textarea.value;
+  btn.disabled = true;
+  try{
+    await fetch('/api/notes', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ date: dateStr, text })
+    });
+    if(text.trim()) latestNotes[dateStr] = text.trim();
+    else delete latestNotes[dateStr];
+    showToast(text.trim() ? "Note saved" : "Note cleared", "ok");
+    renderCalendar();
+    showCalDay(dateStr);
+  }catch(err){
+    showToast("Couldn't save note: " + err.message, "err");
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// Event titles/venues/source names ultimately come from user-pasted notice text
+// run through an LLM extraction step — they are NOT trusted strings. Rendering
+// them straight into innerHTML (as this file used to) is a stored-XSS hole: a
+// pasted notice containing markup can make the model echo it back in a field,
+// which then executes when any visitor views that event. Escape on the way in.
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[c]));
+}
+
+function fmtTime(t){ return t ? t.slice(0,5) : "All day"; }
+// Parses a bare "YYYY-MM-DD" (or a Postgres ISO timestamp like "2026-08-12T00:00:00.000Z")
+// as a LOCAL calendar date, not UTC. Using `new Date(str)` directly on a date-only string
+// treats it as UTC midnight, which shifts to the previous day in any negative-UTC-offset
+// timezone once read back with local getters (e.g. America/New_York shows Aug 11 instead of Aug 12).
+function parseLocalDate(d){
+  if(!d) return null;
+  const datePart = d.slice(0,10); // strips any time/zone suffix
+  const [y,m,day] = datePart.split('-').map(Number);
+  return new Date(y, m-1, day); // explicit Y/M/D constructor is always local, never UTC-shifted
+}
+function todayLocalStr(){
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+function fmtDate(d){ const parsed = parseLocalDate(d); return parsed ? parsed.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : "—"; }
+
+function renderAll(events, sources){
+  const sorted = [...events].sort((a,b)=> (a.date||"").localeCompare(b.date||""));
+  const conflicted = events.filter(e=>e.conflictsWith && e.conflictsWith.length>0 && !e.conflict_dismissed);
+  const changed = events.filter(e=>(e.status==="changed"||e.status==="new") && !e.change_dismissed);
+  const todayStr = todayLocalStr();
+  const upcoming = sorted.filter(e=> e.date && e.date.slice(0,10) >= todayStr);
+
+  document.getElementById('cards').innerHTML = `
+    ${card("Total events", events.length, "event")}
+    ${card("Conflicts", conflicted.length/2, "warning")}
+    ${card("Changes", changed.length, "sync_alt")}
+    ${card("Sources", sources.length, "source")}
+  `;
+
+  document.getElementById('attention').innerHTML = conflicted.length
+    ? conflicted.map(e=>eventRow(e,true)).join("")
+    : `<div class="empty">Nothing urgent right now.</div>`;
+
+  document.getElementById('upcoming').innerHTML = upcoming.length
+    ? upcoming.slice(0,5).map(e=>eventRow(e)).join("")
+    : `<div class="empty">No upcoming events yet — add a source.</div>`;
+
+  document.getElementById('timeline-list').innerHTML = sorted.length
+    ? sorted.map(e=>eventRow(e)).join("")
+    : `<div class="empty">No events yet. Go to Sources and extract one.</div>`;
+
+  document.getElementById('conflicts-list').innerHTML = conflicted.length
+    ? conflicted.map(e=>eventRow(e,true)).join("")
+    : `<div class="empty">No conflicts detected.</div>`;
+
+  document.getElementById('changes-list').innerHTML = changed.length
+    ? changed.map(e=>eventRow(e,false,true)).join("")
+    : `<div class="empty">No changes detected yet.</div>`;
+
+  document.getElementById('sources-list').innerHTML = sources.length
+    ? sources.map(s=>`<div class="event-row"><div><div class="t">${esc(s.name)}</div><div class="meta">Added ${new Date(s.created_at).toLocaleString()}</div></div></div>`).join("")
+    : `<div class="empty">No sources submitted yet.</div>`;
+}
+
+function card(label, num, icon){
+  return `<div class="card"><div class="lbl">${label}<span class="material-symbols-outlined" style="font-size:16px;color:var(--secondary)">${icon}</span></div><div class="num">${num}</div></div>`;
+}
+
+function eventRow(e, isConflict=false, isChange=false){
+  let cls = "event-row" + (isConflict?" conflict":"") + (isChange?" changed":"");
+  let diffHtml = "";
+  if(e.status === "changed" && e.prev_date){
+    diffHtml = `<div class="diff"><span class="old">${fmtDate(e.prev_date)} ${fmtTime(e.prev_start_time)}</span> →
+      <span class="new">${fmtDate(e.date)} ${fmtTime(e.start_time)}</span></div>`;
+  }
+  let dismissHtml = "";
+  if(isConflict) dismissHtml += `<button class="dismiss-btn" onclick="dismissEvent(${e.id},'conflict')">Dismiss conflict</button>`;
+  if(isChange) dismissHtml += `<button class="dismiss-btn" onclick="dismissEvent(${e.id},'change')" style="margin-left:6px;">Dismiss change</button>`;
+  return `<div class="${cls}">
+    <div>
+      <div class="t">${esc(e.title)}</div>
+      <div class="meta">${fmtDate(e.date)} · ${fmtTime(e.start_time)}${e.end_time? " – "+e.end_time.slice(0,5):""} · ${esc(e.venue||"N/A")} · from ${esc(e.source_name)}</div>
+      ${diffHtml}
+      ${isConflict? `<div class="meta" style="color:var(--error);margin-top:4px;">Overlaps with ${e.conflictsWith.length} other event(s)</div>`:""}
+      ${dismissHtml ? `<div>${dismissHtml}</div>` : ""}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+      <span class="tag ${esc(e.type)}">${esc(e.type)}</span>
+      ${e.status==="new"?'<span class="tag new">New</span>':""}
+      ${e.status==="changed"?'<span class="tag changed">Changed</span>':""}
+      ${isConflict?'<span class="tag conflict">Conflict</span>':""}
+    </div>
+  </div>`;
+}
+
+function calShiftMonth(delta){
+  calCursor.setMonth(calCursor.getMonth() + delta);
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const year = calCursor.getFullYear(), month = calCursor.getMonth();
+  document.getElementById('cal-month-label').textContent =
+    calCursor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayStr = todayLocalStr();
+
+  const eventsByDay = {};
+  latestEvents.forEach(e=>{
+    if(!e.date) return;
+    const d = e.date.slice(0,10);
+    const evDate = parseLocalDate(d);
+    if(evDate.getFullYear() === year && evDate.getMonth() === month){
+      const day = evDate.getDate();
+      (eventsByDay[day] = eventsByDay[day] || []).push(e);
+    }
+  });
+
+  const heads = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-head">${d}</div>`).join('');
+  let cells = '';
+  for(let i=0;i<firstDay;i++) cells += `<div class="cal-cell empty"></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dayEvents = eventsByDay[day] || [];
+    const hasConflict = dayEvents.some(e=>e.conflictsWith && e.conflictsWith.length>0 && !e.conflict_dismissed);
+    const hasNote = !!latestNotes[dateStr];
+    let cls = 'cal-cell';
+    if(dateStr === todayStr) cls += ' today';
+    if(dayEvents.length) cls += ' has-events';
+    if(hasConflict) cls += ' has-conflict';
+    cells += `<div class="${cls}" onclick="showCalDay('${dateStr}')">
+      <div class="daynum">${day}${hasNote?' <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;color:var(--secondary);">sticky_note_2</span>':''}</div>
+      ${dayEvents.slice(0,2).map(e=>`<div><span class="dot"></span>${esc(e.title.slice(0,16))}${e.title.length>16?'…':''}</div>`).join('')}
+      ${dayEvents.length>2 ? `<div style="color:var(--secondary);">+${dayEvents.length-2} more</div>` : ''}
+    </div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = heads + cells;
+  document.getElementById('cal-day-detail').innerHTML = '';
+}
+
+function showCalDay(dateStr){
+  const dayEvents = latestEvents.filter(e=> e.date && e.date.slice(0,10) === dateStr);
+  const label = parseLocalDate(dateStr).toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'});
+  const noteText = latestNotes[dateStr] || '';
+  document.getElementById('cal-day-detail').innerHTML = `
+    <h3 style="margin:16px 0 10px;">${label}</h3>
+    ${dayEvents.length ? dayEvents.map(e=>eventRow(e, e.conflictsWith && e.conflictsWith.length>0 && !e.conflict_dismissed)).join('') : '<div class="empty">Nothing due this day.</div>'}
+    <div style="margin-top:14px;">
+      <h4 style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--secondary);">Your note for this day</h4>
+      <textarea id="note-input" placeholder="Anything you want to remember about this day..." style="min-height:70px;">${esc(noteText)}</textarea>
+      <div class="row" style="margin-top:8px;margin-bottom:0;">
+        <button class="primary" id="note-save-btn" onclick="saveNote('${dateStr}')">Save note</button>
+      </div>
+    </div>
+  `;
+}
+
+refresh();
+
+// --- WhatsApp/OS "Share" support -------------------------------------------
+// If installed as a PWA (Add to Home Screen), manifest.json's share_target
+// makes NewNotes show up in the phone's native Share sheet. Sharing a
+// WhatsApp message into it lands here as ?text=...&title=... — pick that up
+// and drop it straight into the Sources form instead of making the user
+// retype/paste it.
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
+(function handleShareTarget(){
+  const params = new URLSearchParams(location.search);
+  const sharedText = params.get('text') || params.get('url') || '';
+  const sharedTitle = params.get('title') || '';
+  if (!sharedText) return;
+
+  document.querySelectorAll('nav a').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  document.querySelector('nav a[data-tab="sources"]').classList.add('active');
+  document.getElementById('panel-sources').classList.add('active');
+  document.getElementById('sourceName').value = sharedTitle || 'Shared via WhatsApp';
+  document.getElementById('sourceText').value = sharedText;
+  showToast('Notice loaded from Share — review it and hit Extract events.', 'ok');
+
+  history.replaceState(null, '', location.pathname);
+})();
+</script>
+</body>
+</html>

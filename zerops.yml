@@ -1,0 +1,17 @@
+zerops:
+  - setup: backend
+    build:
+      base: nodejs@20
+      buildCommands:
+        - cd backend && npm install
+      deployFiles:
+        - backend
+    run:
+      base: nodejs@20
+      start: cd backend && npm start
+      ports:
+        - port: 3000
+          httpSupport: true
+      envVariables:
+        GEMINI_API_KEY: ${GEMINI_API_KEY}
+        DATABASE_URL: ${db_connectionString}
