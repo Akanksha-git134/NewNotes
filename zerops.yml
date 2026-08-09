@@ -5,10 +5,9 @@ zerops:
       buildCommands:
         - cd backend && npm install
       deployFiles:
-        - backend
+        - backend/~
     run:
       base: nodejs@20
-      workingDir: backend
       start: npm start
       ports:
         - port: 3000
