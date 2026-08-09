@@ -8,6 +8,7 @@ zerops:
         - backend
     run:
       base: nodejs@20
+      workingDir: backend
       start: npm start
       ports:
         - port: 3000
