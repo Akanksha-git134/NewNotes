@@ -8,10 +8,12 @@ zerops:
         - backend
     run:
       base: nodejs@20
-      start: cd backend && npm start
+      start: npm start
       ports:
         - port: 3000
           httpSupport: true
       envVariables:
         GEMINI_API_KEY: ${GEMINI_API_KEY}
-        DATABASE_URL: ${db_connectionString}
+        DATABASE_URL: ${DATABASE_URL}
+        RESEND_API_KEY: ${RESEND_API_KEY}
+        REMINDER_EMAIL: ${REMINDER_EMAIL}
